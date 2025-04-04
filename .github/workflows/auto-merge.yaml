@@ -1,43 +1,31 @@
-name: auto-merge-readme
+name: repository-dispatch # ワークフロー名を決定
 
+# トリガーの設定
 on:
-    pull_request:
-        branches: [main]
-        types: [opened]
+    push: # プッシュ(マージ)が発生したときにトリガー
+        branches:
+            - develop
 
 permissions:
-    pull-requests: write
     contents: write
 
 jobs:
-    auto-merge:
+    dispatch:
+        name: Repository Dispatch # 他リポジトリへの接続を行うジョブ
         runs-on: ubuntu-latest
-        if: github.event.pull_request.user.login == 'oimurat'
-        env:
-            PR_URL: ${{github.event.pull_request.html_url}}
-            GITHUB_PAT: ${{ secrets.REPO_ACCESS_TOKEN }}
+
         steps:
-            - name: Checkout repository with preceding commits
+            - name: Checkout repository # リポジトリをチェックアウト
               uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
 
-            - name: Check if only README.md is updated
+            - name: Set Env # 環境変数の設定
               run: |
-                  git diff --name-only "origin/main" HEAD | tee /tmp/diffs
-                  if [ "$(wc -l < /tmp/diffs)" -eq "$(grep -c "^README.md$" /tmp/diffs)" ]; then
-                    echo 'ONLY_README=yes' | tee -a "$GITHUB_ENV"
-                  else
-                    echo 'ONLY_README=no' | tee -a "$GITHUB_ENV"
-                  fi
+                  echo "GITHUB_SHA"=${{github.sha}} >> $GITHUB_ENV
 
-            - name: Authenticate Github CLI with PAT
-              run: echo "$GITHUB_PAT" | gh auth login --with-token
-
-            # - name: Approve PR
-            #   if: env.ONLY_README == 'yes'
-            #   run: gh pr review "$PR_URL" --approve
-
-            - name: Enable auto-merge
-              if: env.ONLY_README == 'yes'
-              run: gh pr merge --merge --auto "$PR_URL"
+            - name: Repository Dispatch Manifest # マニュフェストリポジトリへの接続
+              uses: peter-evans/repository-dispatch@v3
+              with:
+                  token: ${{ secrets.REPO_ACCESS_TOKEN }}
+                  repository: oimurat/dispatch-test # リポジトリ名を指定
+                  event-type: update-manifest
+                  client-payload: '{"sha": "${{ env.GITHUB_SHA }}"}'

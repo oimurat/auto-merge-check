@@ -15,7 +15,7 @@ jobs:
         if: github.event.pull_request.user.login == 'oimurat'
         env:
             PR_URL: ${{github.event.pull_request.html_url}}
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
         steps:
             - name: Checkout repository with preceding commits
               uses: actions/checkout@v4
@@ -30,6 +30,9 @@ jobs:
                   else
                     echo 'ONLY_README=no' | tee -a "$GITHUB_ENV"
                   fi
+
+            - name: Authenticate Github CLI with PAT
+              run: echo "$GITHUB_TOKEN" | gh auth login --with-token
 
             - name: Approve PR
               if: env.ONLY_README == 'yes'

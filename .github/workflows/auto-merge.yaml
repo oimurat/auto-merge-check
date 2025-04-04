@@ -34,9 +34,9 @@ jobs:
             - name: Authenticate Github CLI with PAT
               run: echo "$GITHUB_PAT" | gh auth login --with-token
 
-            - name: Approve PR
-              if: env.ONLY_README == 'yes'
-              run: gh pr review "$PR_URL" --approve
+            # - name: Approve PR
+            #   if: env.ONLY_README == 'yes'
+            #   run: gh pr review "$PR_URL" --approve
 
             - name: Enable auto-merge
               if: env.ONLY_README == 'yes'

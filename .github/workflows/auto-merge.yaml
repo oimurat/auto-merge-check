@@ -26,7 +26,7 @@ jobs:
               uses: peter-evans/repository-dispatch@v3
               with:
                   token: ${{ secrets.REPO_ACCESS_TOKEN }}
-                #   repository: oimurat/dispatch-test # リポジトリ名を指定
-                  repository: oimurat/dispatch-test-githubapp
+                  repository: oimurat/dispatch-test # リポジトリ名を指定
+                  # repository: oimurat/dispatch-test-githubapp
                   event-type: update-manifest
                   client-payload: '{"sha": "${{ env.GITHUB_SHA }}"}'
